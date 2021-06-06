@@ -1,0 +1,77 @@
+#Barros mikel-ange
+#Tp1
+
+A=imread("textures_data/text0.png");
+M=64;
+n=20;
+l=n;
+I=zeros(M+2*l,M+2*l,3);
+B=ones(M+2*l,M+2*l);
+B(M:M+l,1:M+l)=1;
+B(1:M+l,M:M+l)=1;
+X=randi([1,rows(A)-l],1);
+Y=randi([1,columns(A)-l],1);
+T=A(X:X+l,Y:Y+l,:);
+I(l+M/2-l/2:l+M/2+l/2,l+M/2-l/2:l+M/2+l/2,:)=T;
+B(l+M/2-l/2:l+M/2+l/2,l+M/2-l/2:l+M/2+l/2)=0;
+Bp=B(l+1:M+l,l+1:M+l);
+while(sum(sum(Bp)) >0)
+  nb_pixel_restant = sum(sum(Bp))
+  NbVoisin=inf;
+  XS=l;
+  YS=l;
+  for(i=l+1:M+l)
+    for(j=l+1:M+l)
+      temp=sum(sum(B(i-l/2:i+l/2,j-l/2:j+l/2)));
+      if(B(i,j) !=0 && temp<NbVoisin)
+        XS=i;
+        YS=j;
+        NbVoisin=temp;
+      end
+    end
+  end
+  Tcomp=I(XS-l/2:XS+l/2,YS-l/2:YS+l/2,:);
+  compare=ones(1,2);
+  compare2=inf;
+  sauvegarde_length=zeros((columns(A)-l/2)*(rows(A)-l/2),1);
+  k=0;
+  for(i=l/2+1:rows(A)-l/2)
+    for(j=l/2+1:columns(A)-l/2)
+      T2=double(A(i-l/2:i+l/2,j-l/2:j+l/2,:));
+      T2(!(Tcomp))=0;
+      d=(T2-Tcomp).^2;
+      ves=sqrt(sum(sum(sum(d))));
+      if(ves<compare2)
+        compare(1,1)=i;
+        compare(1,2)=j;
+        compare2=ves;
+      endif
+      sauvegarde_length((columns(A)-l/2)*k+j)=ves;
+    end
+    k++;
+  end
+  comparetab=zeros((M-l)*(M-l));
+  comparetab2=zeros((M-l)*(M-l));
+  comparetab(1)=compare(1,1);
+  comparetab2(1)=compare(1,2);
+  epsilon =0.01;
+  nbvaleur=0;
+  k=0;
+  for(i=l/2+1:rows(A)-l/2)
+    for(j=l/2+1:columns(A)-l/2)
+      if(sauvegarde_length((columns(A)-l/2)*k+j)<=(1+epsilon)*compare2);
+        nbvaleur++;
+        comparetab(nbvaleur)=i;
+        comparetab2(nbvaleur)=j;
+      end
+    end
+    k++;
+  end
+  valeurc=randi(max(nbvaleur,1));
+  Tn=A(comparetab(valeurc)-l/2:comparetab(valeurc)+l/2,comparetab2(valeurc)-l/2:comparetab2(valeurc)+l/2,:);
+  I(XS,YS,:)=Tn(l/2+1,l/2+1,:);
+  B(XS,YS)=0;
+  Bp(XS-l,YS-l)=0;
+endwhile
+Imresult=I(l+1:M+l,l+1:M+l,:);
+imshow(uint8(Imresult));
